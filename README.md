@@ -39,7 +39,7 @@ For running server:
 
 ## API Docs
 
-[API Docs](https://punit-naik.github.io/banking/)
+[banking](https://punit-naik.github.io/banking/)
 
 ## License
 
