@@ -45,11 +45,11 @@
 
 ;; Request map spec
 (defonce ^:private string-is-id? (fn [x] (re-matches #"\d+" x)))
-(defonce ^:private string-is-amount? (fn [x] (re-matches #"[+-]?([0-9]*[.])?[0-9]+" x)))
+(defonce ^:private string-is-positive-amount? (fn [x] (re-matches #"([0-9]*[.])?[0-9]+" x)))
 (s/def ::id string-is-id?)
 (s/def ::route-params (s/keys :opt-un [::id]))
 (s/def ::name string?)
-(s/def ::amount string-is-amount?)
+(s/def ::amount string-is-positive-amount?)
 (s/def ::account_number string-is-id?)
 (s/def ::params (s/keys :opt-un [::name ::amount ::account_number]))
 (s/def ::request (s/keys :opt-un [::params ::route-params]))

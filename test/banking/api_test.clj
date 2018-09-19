@@ -72,14 +72,19 @@
 (deftest data-validation-api-test
   (testing "APIs with data validation"
     (let [_ (init-db!)
-          _ (handler (mock/request :post "/register-user" {:user-name "punit-naik" :password "test123"}))
-          token (get-in (handler (mock/request :post "/login" {:user-name "punit-naik" :password "test123"}))
+          _ (handler (mock/request :post "/register-user" {:user-name "pingal-naik" :password "test123"}))
+          token (get-in (handler (mock/request :post "/login" {:user-name "pingal-naik" :password "test123"}))
                         [:headers "authorization"])]
       (is (= (handler (-> (mock/request :post "/account" {:name "pingal naik" :amount "test amount"})
                           (mock/header "authorization" token)))
              {:status 400
               :headers {}
-              :body "In: [:params :amount] val: \"test amount\" fails spec: :banking.utils/amount at: [:params :amount] predicate: string-is-amount?\n"})))))
+              :body "In: [:params :amount] val: \"test amount\" fails spec: :banking.utils/amount at: [:params :amount] predicate: string-is-positive-amount?\n"}))
+      (is (= (handler (-> (mock/request :post "/account" {:name "pingal naik" :amount "-100"})
+                          (mock/header "authorization" token)))
+             {:status 400
+              :headers {}
+              :body "In: [:params :amount] val: \"-100\" fails spec: :banking.utils/amount at: [:params :amount] predicate: string-is-positive-amount?\n"})))))
 
 (deftest login-api-test
   (testing "APIs with login validation"
