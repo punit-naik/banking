@@ -12,7 +12,7 @@
       (is (= (db/fetch-accounts {:account_number 1}) (first sample-data))))))
 
 (deftest insert-accounts-test
-  (testing "`reminders` table insert query tests"
+  (testing "`accounts` table insert query tests"
     (with-redefs [j/insert! (fn [_ _ _] '({:last_insert_rowid 1}))
                   j/query (fn [_ _] sample-data)]
       (is (= (db/insert-account (dissoc (first sample-data) :account_number))
