@@ -71,7 +71,7 @@
 (defbulkhead my-bh {:concurrency 10})
 
 (defmacro with-throttler
-  "Throttles functions based on per sond requests and concurrent requests"
+  "Throttles functions based on per second requests and concurrent requests"
   [api-fn]
   `(with-rate-limiter my-rl
      (with-bulkhead my-bh ~api-fn)))
