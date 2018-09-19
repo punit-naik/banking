@@ -21,7 +21,7 @@ For running server:
 ./test.sh
 ```
 
-### Test Coverage
+### Code Coverage Report
 
 ```
 |---------------------------+---------+---------|
