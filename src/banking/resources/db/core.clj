@@ -22,8 +22,8 @@
         (ddl/create-table :transaction_history
           [:sequence "INTEGER PRIMARY KEY AUTOINCREMENT"]
           [:description "text"]
-          [:debit "REAL DEFAULT 0.0"]
-          [:credit "REAL DEFAULT 0.0"]
+          [:amount "REAL"]
+          [:type "varchar(6)"]
           [:account_number "INTEGER"]))
       (j/db-do-commands db-conf
         (ddl/create-table :auth
@@ -63,12 +63,12 @@
   [{:keys [account_number]}]
   (let [result (map
                  (fn [row]
-                   (dissoc (into {} (remove (fn [[k v]] (= v 0.0)) row)) :account_number))
+                   (assoc (dissoc row :amount :type :account_number) (keyword (:type row)) (:amount row)))
                  (j/query db-conf
                    (str "select * from transaction_history where account_number = " account_number)))]
     (if (empty? result)
       (throw (Exception. "Audit logs not present!"))
-      (sort-by :sequence result))))
+      (map-indexed #(assoc %2 :sequence %1) (sort-by :sequence result)))))
 
 (defn delete-reminder
   "Deletes a reminder with a specific ID from the `banking` table"

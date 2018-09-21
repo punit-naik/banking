@@ -31,7 +31,7 @@
                                        :balance (+ (:balance account-info)
                                                    (Float/valueOf (:amount params)))})]
       (db/add-transaction-details {:description (:deposit-type params "deposit")
-                                   :credit (Float/valueOf (:amount params))
+                                   :amount (Float/valueOf (:amount params)) :type "credit"
                                    :account_number (:id route-params)})
       response)
     200))
@@ -47,7 +47,7 @@
                        {:account_number (:id route-params)
                         :balance (- (:balance account-info) (Double/valueOf (:amount params)))}))]
       (db/add-transaction-details {:description (:withdraw-type params "withdraw")
-                                   :debit (Float/valueOf (:amount params))
+                                   :amount (Float/valueOf (:amount params)) :type "debit"
                                    :account_number (:id route-params)})
       response)
     200))
