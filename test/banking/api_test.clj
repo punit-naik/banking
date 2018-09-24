@@ -51,10 +51,10 @@
              {:status  200
               :headers {"Content-Type" "application/json; charset=utf-8"}
               :body (generate-string
-                      '({:sequence 1, :description "deposit", :credit 100.0}
-                        {:sequence 2, :description "deposit", :credit 100.0}
-                        {:sequence 3, :description "withdraw", :debit 100.0}
-                        {:sequence 4, :description "sent to #2", :debit 50.0}))}))
+                      '({:sequence 0, :description "deposit", :credit 100.0}
+                        {:sequence 1, :description "deposit", :credit 100.0}
+                        {:sequence 2, :description "withdraw", :debit 100.0}
+                        {:sequence 3, :description "sent to #2", :debit 50.0}))}))
       (is (= (handler (-> (mock/request :post (str "/account/" id "/withdraw") {:amount "100"})
                           (mock/header "authorization" token)))
              {:status  500
