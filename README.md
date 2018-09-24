@@ -15,6 +15,11 @@ For running server:
 ./run.sh
 ```
 
+### REPL
+```
+./repl.sh
+```
+
 ## Testing
 
 ```
