@@ -36,7 +36,7 @@
   "Gets the accounts from the `accounts` table"
   [{:keys [account_number]}]
   (let [result (j/query db-conf
-                 (str "select * from accounts where account_number = " account_number))]
+                 ["select * from accounts where account_number = ?" account_number])]
     (if (empty? (first result))
       (throw (Exception. "Account not present!"))
       (first result))))
@@ -65,7 +65,7 @@
                  (fn [row]
                    (assoc (dissoc row :amount :type :account_number) (keyword (:type row)) (:amount row)))
                  (j/query db-conf
-                   (str "select * from transaction_history where account_number = " account_number)))]
+                   ["select * from transaction_history where account_number = ?" account_number]))]
     (if (empty? result)
       (throw (Exception. "Audit logs not present!"))
       (map-indexed #(assoc %2 :sequence %1) (sort-by :sequence result)))))
@@ -83,6 +83,6 @@
 (defn lookup-user
   "Searches for a user in the `auth` table by their `user_name` and `password`"
   [{:keys [user-name password]}]
-  (when-let [row (first (j/query db-conf (str "select user_name, password from auth where user_name = \"" user-name "\"")))]
+  (when-let [row (first (j/query db-conf ["select user_name, password from auth where user_name = ?" user-name]))]
     (when (hashers/check password (:password row))
       row)))

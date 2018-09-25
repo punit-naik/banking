@@ -93,4 +93,4 @@
       (is (= (handler (mock/request :post "/login" {:user-name "punit-naik" :password "test1234"}))
              {:status 401
               :headers {}
-              :body "credentials provided are either wrong or not provided at all"})))))
+              :body "credentials provided are either wrong or not provided at all!"})))))
