@@ -16,7 +16,7 @@
       (j/db-do-commands db-conf
         (ddl/create-table :accounts
           [:account_number "INTEGER PRIMARY KEY AUTOINCREMENT"]
-          [:name "text not null"]
+          [:name "text not null UNIQUE"]
           [:balance "REAL DEFAULT 0.0"]))
       (j/db-do-commands db-conf
         (ddl/create-table :transaction_history
