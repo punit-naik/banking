@@ -78,13 +78,11 @@
    else throws a 401 exception"
   [{:keys [params headers]}]
   (if-let [user (db/lookup-user (select-keys params [:user-name :password]))]
-    (assoc {:status 200 :body "Authenticated!"}
-      :headers
-      (assoc headers
-        "authorization"
-        (str "Token " (sign user secret))))
+    {:status 200
+     :body "Authenticated!"
+     :headers (assoc {} "authorization" (str "Token " (sign user secret)))}
     {:status 401
-     :body "credentials provided are either wrong or not provided at all"}))
+     :body "credentials provided are either wrong or not provided at all!"}))
 
 (defn logout
   "Logs out by removing he authorization header from the request altogether"
