@@ -67,7 +67,7 @@
       (is (= (handler (mock/request :post "/account" {:name "punit naik"}))
              {:status 401
               :headers {}
-              :body "Not authorized"})))))
+              :body "Not authorized!"})))))
 
 (deftest data-validation-api-test
   (testing "APIs with data validation"

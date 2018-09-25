@@ -33,16 +33,6 @@
            (unsign secret))
     (catch Exception e nil)))
 
-(defmacro with-auth
-  "Wraps the code in an exception when there is an authentication error while executing the API code
-   Passes it to the `with-data-validation` macro"
-  [request api-fn]
-  `(if (authenticated? ~request)
-     (with-data-validation ~request ~api-fn)
-     (with-http-error-response
-       {:status 401
-        :body "Not authorized"})))
-
 ;; Request map spec
 (defonce ^:private string-is-id? (fn [x] (re-matches #"\d+" x)))
 (defonce ^:private string-is-positive-amount? (fn [x] (re-matches #"([0-9]*[.])?[0-9]+" x)))
@@ -53,15 +43,6 @@
 (s/def ::account_number string-is-id?)
 (s/def ::params (s/keys :opt-un [::name ::amount ::account_number]))
 (s/def ::request (s/keys :opt-un [::params ::route-params]))
-
-(defmacro with-data-validation
-  "Wraps the code in an exception when there is a data validation error while executing the API code"
-  [request api-fn]
-  `(if (s/valid? ::request ~request)
-     (~api-fn ~request)
-     (with-http-error-response
-       {:status 400
-        :body (s/explain-str ::request ~request)})))
 
 ;; API Throttling
 
@@ -75,3 +56,31 @@
   [api-fn]
   `(with-rate-limiter my-rl
      (with-bulkhead my-bh ~api-fn)))
+
+;; Auth, Data Validation, etc.
+
+(defn with-auth
+  "Wraps the code in an exception when there is an authentication error while executing the API code"
+  [request]
+  (if (authenticated? request)
+    request
+    {:status 401 :body "Not authorized!"}))
+
+(defn with-data-validation
+  "Wraps the code in an exception when there is a data validation error while executing the API code"
+  [request api-fn]
+  (if (:status request)
+    (with-http-error-response request)
+    (if (s/valid? ::request request)
+      (api-fn request)
+      (with-http-error-response
+        {:status 400
+         :body (s/explain-str ::request request)}))))
+
+(defn with-necessary
+  "All in one function which wraps auth, data validation and throttling"
+  [request api-fn]
+  (-> request
+      with-auth
+      (with-data-validation api-fn)
+      with-throttler))
