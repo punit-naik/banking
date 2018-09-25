@@ -33,12 +33,12 @@ For running server:
 |                 Namespace | % Forms | % Lines |
 |---------------------------+---------+---------|
 |              banking.core |   92.16 |  100.00 |
-|    banking.resources.core |   61.54 |   93.10 |
-| banking.resources.db.core |   91.59 |   94.55 |
-|       banking.routes.core |   58.42 |  100.00 |
-|             banking.utils |   98.46 |  100.00 |
+|    banking.resources.core |   60.99 |   92.86 |
+| banking.resources.db.core |   91.81 |   94.55 |
+|       banking.routes.core |   48.54 |  100.00 |
+|             banking.utils |   92.46 |  100.00 |
 |---------------------------+---------+---------|
-|                 ALL FILES |   72.98 |   96.55 |
+|                 ALL FILES |   74.05 |   96.73 |
 |---------------------------+---------+---------|
 ```
 
