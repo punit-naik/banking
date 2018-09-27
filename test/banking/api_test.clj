@@ -46,6 +46,11 @@
              {:status  200
               :headers {"Content-Type" "application/json; charset=utf-8"}
               :body (generate-string {:account_number id :name "punit naik" :balance 50.0})}))
+      (is (= (handler (-> (mock/request :post (str "/account/" id "/send") {:amount "100" :account_number 2})
+                          (mock/header "authorization" token)))
+             {:status 403
+              :headers {}
+              :body "API Error -> Not enough balance in the sender's account!"}))
       (is (= (handler (-> (mock/request :get (str "/account/" id "/audit"))
                           (mock/header "authorization" token)))
              {:status  200

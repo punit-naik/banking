@@ -76,25 +76,24 @@
   [{:keys [from_account_number to_account_number amount]}]
   (if (= from_account_number to_account_number)
     (throw (Exception. (generate-string {:msg "Cannot send money from an account to itself!" :err-code 403})))
-    (do
-      (try
-        (do
-          (j/with-db-transaction [tx-conn db-conf]
-            (j/execute! tx-conn ["update accounts set balance = balance - ? where account_number = ? and balance >= 0.0"
-                                 amount from_account_number])
-            (j/execute! tx-conn ["update accounts set balance = balance + ? where account_number = ? and balance >= 0.0"
-                                 amount to_account_number])
-            (add-transaction-details
-              {:description (str "sent to #" to_account_number)
-               :type "debit" :amount amount
-               :account_number from_account_number} tx-conn)
-            (add-transaction-details
-              {:description (str "received from #" from_account_number)
-               :type "credit" :amount amount
-               :account_number to_account_number} tx-conn)))
-        (catch Exception e
-          (throw (Exception. (generate-string {:msg "Not enough balance in the sender's account!" :err-code 403})))))
-      (fetch-accounts {:account_number from_account_number}))))
+    (try
+      (do
+        (j/with-db-transaction [tx-conn db-conf]
+          (j/execute! tx-conn ["update accounts set balance = balance - ? where account_number = ? and balance >= 0.0"
+                               amount from_account_number])
+          (j/execute! tx-conn ["update accounts set balance = balance + ? where account_number = ? and balance >= 0.0"
+                               amount to_account_number])
+          (add-transaction-details
+            {:description (str "sent to #" to_account_number)
+             :type "debit" :amount amount
+             :account_number from_account_number} tx-conn)
+          (add-transaction-details
+            {:description (str "received from #" from_account_number)
+             :type "credit" :amount amount
+             :account_number to_account_number} tx-conn))
+        (fetch-accounts {:account_number from_account_number}))
+      (catch Exception e
+        (throw (Exception. (generate-string {:msg "Not enough balance in the sender's account!" :err-code 403})))))))    
 
 (defn delete-reminder
   "Deletes a reminder with a specific ID from the `banking` table"
