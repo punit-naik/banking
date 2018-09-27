@@ -81,7 +81,7 @@
         (j/with-db-transaction [tx-conn db-conf]
           (j/execute! tx-conn ["update accounts set balance = balance - ? where account_number = ? and balance >= 0.0"
                                amount from_account_number])
-          (j/execute! tx-conn ["update accounts set balance = balance + ? where account_number = ? and balance >= 0.0"
+          (j/execute! tx-conn ["update accounts set balance = balance + ? where account_number = ?"
                                amount to_account_number])
           (add-transaction-details
             {:description (str "sent to #" to_account_number)
@@ -93,7 +93,7 @@
              :account_number to_account_number} tx-conn))
         (fetch-accounts {:account_number from_account_number}))
       (catch Exception e
-        (throw (Exception. (generate-string {:msg "Not enough balance in the sender's account!" :err-code 403})))))))    
+        (throw (Exception. (generate-string {:msg "Not enough balance in the sender's account!" :err-code 403})))))))
 
 (defn delete-reminder
   "Deletes a reminder with a specific ID from the `banking` table"
