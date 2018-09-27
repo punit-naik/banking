@@ -1,6 +1,7 @@
 (ns banking.utils
   (:require [buddy.sign.jwt :refer [sign unsign]]
             [clojure.string :refer [split]]
+            [cheshire.core :refer [parse-string]]
             [diehard.core :refer [defratelimiter with-rate-limiter defbulkhead with-bulkhead]]
             [clojure.spec.alpha :as s]))
 
@@ -20,8 +21,9 @@
      {:status ~success-status-code
       :body ~api-fn}
      (catch Exception ~'e
-       {:status 500
-        :body (str "API Error -> " (.getMessage ~'e))})))
+       (let [~'ex-info (parse-string (.getMessage ~'e) true)]
+         {:status (:err-code ~'ex-info)
+          :body (str "API Error -> " (:msg ~'ex-info))}))))
 
 (defn authenticated?
   "Checks if a request is authenticated by checking the JWT in the authorization header"

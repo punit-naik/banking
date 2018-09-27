@@ -1,6 +1,7 @@
 (ns banking.resources.db.core
   (:require [clojure.java.jdbc :as j]
             [java-jdbc.ddl :as ddl]
+            [cheshire.core :refer [generate-string]]
             [buddy.hashers :as hashers]))
 
 (defonce ^:private db-conf
@@ -38,7 +39,7 @@
   (let [result (j/query db-conf
                  ["select * from accounts where account_number = ?" account_number])]
     (if (empty? (first result))
-      (throw (Exception. "Account not present!"))
+      (throw (Exception. (generate-string {:msg "Account not present!" :err-code 404})))
       (first result))))
 
 (defn insert-account
@@ -67,28 +68,32 @@
                  (j/query db-conf
                    ["select * from transaction_history where account_number = ?" account_number]))]
     (if (empty? result)
-      (throw (Exception. "Audit logs not present!"))
+      (throw (Exception. (generate-string {:msg "Audit logs not present!" :err-code 404})))
       (map-indexed #(assoc %2 :sequence %1) (sort-by :sequence result)))))
 
 (defn transaction-between-accounts
   "Transfers money from one account to another using database transactions"
   [{:keys [from_account_number to_account_number amount]}]
   (if (= from_account_number to_account_number)
-    (throw (Exception. "Cannot send money from an account to itself!"))
+    (throw (Exception. (generate-string {:msg "Cannot send money from an account to itself!" :err-code 403})))
     (do
-      (j/with-db-transaction [tx-conn db-conf]
-        (j/execute! tx-conn ["update accounts set balance = balance - ? where account_number = ? and balance >= 0.0"
-                             amount from_account_number])
-        (j/execute! tx-conn ["update accounts set balance = balance + ? where account_number = ? and balance >= 0.0"
-                             amount to_account_number])
-        (add-transaction-details
-          {:description (str "sent to #" to_account_number)
-           :type "debit" :amount amount
-           :account_number from_account_number} tx-conn)
-        (add-transaction-details
-          {:description (str "received from #" from_account_number)
-           :type "credit" :amount amount
-           :account_number to_account_number} tx-conn))
+      (try
+        (do
+          (j/with-db-transaction [tx-conn db-conf]
+            (j/execute! tx-conn ["update accounts set balance = balance - ? where account_number = ? and balance >= 0.0"
+                                 amount from_account_number])
+            (j/execute! tx-conn ["update accounts set balance = balance + ? where account_number = ? and balance >= 0.0"
+                                 amount to_account_number])
+            (add-transaction-details
+              {:description (str "sent to #" to_account_number)
+               :type "debit" :amount amount
+               :account_number from_account_number} tx-conn)
+            (add-transaction-details
+              {:description (str "received from #" from_account_number)
+               :type "credit" :amount amount
+               :account_number to_account_number} tx-conn)))
+        (catch Exception e
+          (throw (Exception. (generate-string {:msg "Not enough balance in the sender's account!" :err-code 403})))))
       (fetch-accounts {:account_number from_account_number}))))
 
 (defn delete-reminder

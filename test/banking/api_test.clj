@@ -57,7 +57,7 @@
                         {:sequence 3, :description "sent to #2", :debit 50.0}))}))
       (is (= (handler (-> (mock/request :post (str "/account/" id "/withdraw") {:amount "100"})
                           (mock/header "authorization" token)))
-             {:status  500
+             {:status 403
               :headers {}
               :body "API Error -> Not enough balance!"})))))
 

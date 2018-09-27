@@ -42,7 +42,7 @@
   (with-exception-api
     (let [account-info (db/fetch-accounts {:account_number (:id route-params)})
           response (if (< (:balance account-info) (Float/valueOf (:amount params)))
-                     (throw (Exception. "Not enough balance!"))
+                     (throw (Exception. (generate-string {:msg "Not enough balance!" :err-code 403})))
                      (db/update-account
                        {:account_number (:id route-params)
                         :balance (- (:balance account-info) (Double/valueOf (:amount params)))}))]
