@@ -34,11 +34,11 @@ For running server:
 |---------------------------+---------+---------|
 |              banking.core |   92.16 |  100.00 |
 |    banking.resources.core |   60.99 |   92.86 |
-| banking.resources.db.core |   91.81 |   94.55 |
+| banking.resources.db.core |   92.64 |   94.59 |
 |       banking.routes.core |   48.54 |  100.00 |
 |             banking.utils |   92.46 |  100.00 |
 |---------------------------+---------+---------|
-|                 ALL FILES |   74.05 |   96.73 |
+|                 ALL FILES |   75.03 |   96.51 |
 |---------------------------+---------+---------|
 ```
 
