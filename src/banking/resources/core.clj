@@ -52,19 +52,28 @@
       response)
     200))
 
+;(defn send-money
+;  "Sends money from one account to another"
+;  [{:keys [params route-params] :as request}]
+;  (with-exception-api
+;    (if (= (:account_number params) (:id route-params))
+;      (throw (Exception. "Cannot send money from an account to itself!"))
+;      (let [sender (withdraw-money (assoc-in request [:params :withdraw-type] (str "sent to #" (:account_number params))))]
+;        (if (= (:body sender) "API Error -> Not enough balance!")
+;          (throw (Exception. (str (join (butlast (second (split (:body sender) #" -> ")))) " in the sending account!")))
+;          (deposit-money (assoc-in (assoc-in request [:route-params :id] (:account_number params))
+;                           [:params :deposit-type] (str "received from #" (:id route-params))
+;        (:body sender)
+;    200))
+
 (defn send-money
   "Sends money from one account to another"
-  [{:keys [params route-params] :as request}]
+  [{:keys [params route-params]}]
   (with-exception-api
-    (if (= (:account_number params) (:id route-params))
-      (throw (Exception. "Cannot send money from an account to itself!"))
-      (let [sender (withdraw-money (assoc-in request [:params :withdraw-type] (str "sent to #" (:account_number params))))]
-        (if (= (:body sender) "API Error -> Not enough balance!")
-          (throw (Exception. (str (join (butlast (second (split (:body sender) #" -> ")))) " in the sending account!")))
-          (deposit-money (assoc-in (assoc-in request [:route-params :id] (:account_number params))
-                           [:params :deposit-type] (str "received from #" (:id route-params)))))
-        (:body sender)))
-    200))
+    (db/transaction-between-accounts
+      {:from_account_number (:id route-params)
+       :to_account_number (:account_number params)
+       :amount (:amount params)}) 200))
 
 (defn get-audit-logs
   "Gets an account's audit logs (account specified with an ID)"

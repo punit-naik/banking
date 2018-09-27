@@ -15,21 +15,21 @@
     (do
       (j/db-do-commands db-conf
         (ddl/create-table :accounts
-          [:account_number "INTEGER PRIMARY KEY AUTOINCREMENT"]
+          [:account_number "INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL"]
           [:name "text not null UNIQUE"]
-          [:balance "REAL DEFAULT 0.0"]))
+          [:balance "REAL DEFAULT 0.0 CHECK (balance >= 0.0) NOT NULL"]))
       (j/db-do-commands db-conf
         (ddl/create-table :transaction_history
-          [:sequence "INTEGER PRIMARY KEY AUTOINCREMENT"]
-          [:description "text"]
-          [:amount "REAL"]
-          [:type "varchar(6)"]
-          [:account_number "INTEGER"]))
+          [:sequence "INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL"]
+          [:description "text NOT NULL"]
+          [:amount "REAL NOT NULL CHECK (amount >= 0.0)"]
+          [:type "varchar(6) NOT NULL"]
+          [:account_number "INTEGER NOT NULL"]))
       (j/db-do-commands db-conf
         (ddl/create-table :auth
-          [:id "INTEGER PRIMARY KEY AUTOINCREMENT"]
-          [:user_name "text UNIQUE"]
-          [:password "text UNIQUE"])))
+          [:id "INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL"]
+          [:user_name "text UNIQUE NOT NULL"]
+          [:password "text UNIQUE NOT NULL"])))
     (catch Exception e (.getMessage e))))
 
 (defn fetch-accounts
@@ -55,8 +55,8 @@
 
 (defn add-transaction-details
   "Adds the details about the transaction in the `transaction_history` table"
-  [details]
-  (j/insert! db-conf :transaction_history details))
+  ([details] (add-transaction-details details db-conf))
+  ([details db-spec] (j/insert! db-spec :transaction_history details)))
 
 (defn fetch-transaction-history
   "Gets the transaction history from the `transaction_history` table"
@@ -69,6 +69,27 @@
     (if (empty? result)
       (throw (Exception. "Audit logs not present!"))
       (map-indexed #(assoc %2 :sequence %1) (sort-by :sequence result)))))
+
+(defn transaction-between-accounts
+  "Transfers money from one account to another using database transactions"
+  [{:keys [from_account_number to_account_number amount]}]
+  (if (= from_account_number to_account_number)
+    (throw (Exception. "Cannot send money from an account to itself!"))
+    (do
+      (j/with-db-transaction [tx-conn db-conf]
+        (j/execute! tx-conn ["update accounts set balance = balance - ? where account_number = ? and balance >= 0.0"
+                             amount from_account_number])
+        (j/execute! tx-conn ["update accounts set balance = balance + ? where account_number = ? and balance >= 0.0"
+                             amount to_account_number])
+        (add-transaction-details
+          {:description (str "sent to #" to_account_number)
+           :type "debit" :amount amount
+           :account_number from_account_number} tx-conn)
+        (add-transaction-details
+          {:description (str "received from #" from_account_number)
+           :type "credit" :amount amount
+           :account_number to_account_number} tx-conn))
+      (fetch-accounts {:account_number from_account_number}))))
 
 (defn delete-reminder
   "Deletes a reminder with a specific ID from the `banking` table"
